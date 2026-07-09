@@ -42,7 +42,7 @@ def api_register(email: str, password: str, full_name: str) -> dict:
     resp = requests.post(
         f"{BASE_URL}/auth/register",
         json={"email": email, "password": password, "full_name": full_name},
-        timeout=15,
+        timeout=60,
     )
     return _handle(resp)
 
@@ -51,7 +51,7 @@ def api_login(email: str, password: str) -> dict:
     resp = requests.post(
         f"{BASE_URL}/auth/login",
         json={"email": email, "password": password},
-        timeout=15,
+        timeout=60,
     )
     return _handle(resp)
 
