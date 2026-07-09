@@ -8,7 +8,10 @@ import requests
 import streamlit as st
 from typing import Optional
 
-BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api/v1")
+if "API_BASE_URL" in st.secrets:
+    BASE_URL = st.secrets["API_BASE_URL"]
+else:
+    BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api/v1")
 
 
 # ---------------------------------------------------------------------------
