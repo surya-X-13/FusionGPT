@@ -41,8 +41,28 @@ def logout():
 # ---------------------------------------------------------------------------
 # Auth API calls
 # ---------------------------------------------------------------------------
+def _safe_request(method: str, url: str, **kwargs) -> requests.Response:
+    try:
+        if method.lower() == "post":
+            return requests.post(url, **kwargs)
+        elif method.lower() == "get":
+            return requests.get(url, **kwargs)
+        else:
+            raise ValueError(f"Unsupported method: {method}")
+    except requests.exceptions.Timeout:
+        raise ValueError("Request timed out. The backend took too long to respond — please try again.")
+    except requests.exceptions.ConnectionError:
+        raise ValueError("Cannot connect to backend. Please check your internet or verify the API server is running.")
+    except Exception as e:
+        raise ValueError(f"Connection failed: {str(e)}")
+
+
+# ---------------------------------------------------------------------------
+# Auth API calls
+# ---------------------------------------------------------------------------
 def api_register(email: str, password: str, full_name: str) -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/auth/register",
         json={"email": email, "password": password, "full_name": full_name},
         timeout=60,
@@ -51,7 +71,8 @@ def api_register(email: str, password: str, full_name: str) -> dict:
 
 
 def api_login(email: str, password: str) -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/auth/login",
         json={"email": email, "password": password},
         timeout=60,
@@ -72,7 +93,8 @@ def save_session(data: dict):
 # AI Tool API calls
 # ---------------------------------------------------------------------------
 def api_chat(message: str, history: list) -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/chat/",
         json={"message": message, "history": history},
         headers=get_headers(),
@@ -82,7 +104,8 @@ def api_chat(message: str, history: list) -> dict:
 
 
 def api_summarize(text: str, length: str = "medium") -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/summarize/",
         json={"text": text, "length": length},
         headers=get_headers(),
@@ -92,7 +115,8 @@ def api_summarize(text: str, length: str = "medium") -> dict:
 
 
 def api_translate(text: str, target_language: str, source_language: str = "auto") -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/translate/",
         json={"text": text, "target_language": target_language, "source_language": source_language},
         headers=get_headers(),
@@ -105,7 +129,8 @@ def api_code(description: str, language: str, task: str = "generate", code_to_ex
     payload = {"description": description, "language": language, "task": task}
     if code_to_explain:
         payload["code_to_explain"] = code_to_explain
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/code/",
         json=payload,
         headers=get_headers(),
@@ -115,7 +140,8 @@ def api_code(description: str, language: str, task: str = "generate", code_to_ex
 
 
 def api_grammar(text: str) -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/grammar/",
         json={"text": text},
         headers=get_headers(),
@@ -125,7 +151,8 @@ def api_grammar(text: str) -> dict:
 
 
 def api_email(context: str, recipient: str, tone: str, additional_info: str = None) -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/email/",
         json={"context": context, "recipient": recipient, "tone": tone, "additional_info": additional_info},
         headers=get_headers(),
@@ -135,7 +162,8 @@ def api_email(context: str, recipient: str, tone: str, additional_info: str = No
 
 
 def api_resume(job_title: str, years_experience: int, key_skills: str, recent_role: str = "", achievements: str = None) -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/resume/",
         json={
             "job_title": job_title,
@@ -151,7 +179,8 @@ def api_resume(job_title: str, years_experience: int, key_skills: str, recent_ro
 
 
 def api_prompt(goal: str, context: str = None, output_format: str = None) -> dict:
-    resp = requests.post(
+    resp = _safe_request(
+        "post",
         f"{BASE_URL}/prompt/",
         json={"goal": goal, "context": context, "output_format": output_format},
         headers=get_headers(),
@@ -164,7 +193,8 @@ def api_history(limit: int = 50, feature: str = None) -> list:
     params = {"limit": limit}
     if feature:
         params["feature"] = feature
-    resp = requests.get(
+    resp = _safe_request(
+        "get",
         f"{BASE_URL}/history/",
         params=params,
         headers=get_headers(),
@@ -174,7 +204,8 @@ def api_history(limit: int = 50, feature: str = None) -> list:
 
 
 def api_stats() -> dict:
-    resp = requests.get(
+    resp = _safe_request(
+        "get",
         f"{BASE_URL}/history/stats",
         headers=get_headers(),
         timeout=15,
